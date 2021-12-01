@@ -169,6 +169,8 @@ cython_debug/
 .history
 .ionide
 
+inputs/
+
 # Support for Project snippet scope
 !.vscode/*.code-snippets
 
