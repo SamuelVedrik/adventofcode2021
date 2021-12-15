@@ -14,9 +14,6 @@ def get_adj(i, j, bound_i, bound_j):
     points_check = points_check[(0 <= points_check[:, 1]) & (points_check[:, 1] < bound_j), :]
     return points_check
     
-
-
-    
 def min_cost_bfs(inputs):
     current = []
     heapq.heappush(current, (inputs[0, 0], [(0, 0)]))
@@ -38,7 +35,31 @@ def min_cost_bfs(inputs):
                         heapq.heappush(current, (total_path_value, current_path + [(child_i, child_j)]))   
                         visited_cheapest[(child_i, child_j)] = total_path_value
             pbar.update(1)            
-                   
+
+# 3x faster, 15 seconds compared to 1 minute for part 2... still rather slow 
+# Optimizations: Not keeping the entire path, but just the current head as well as a set of visited
+# the "in" operator is faster with sets
+
+def min_cost_bfs_optimized(inputs):
+    current = []
+    heapq.heappush(current, (inputs[0, 0], set([0, 0]), (0, 0)))
+    visited_cheapest = defaultdict(lambda: np.inf)
+    with tqdm() as pbar:
+        while current:
+            path_val, visited, head = heapq.heappop(current)
+            i, j = head
+            if head == (inputs.shape[0]-1, inputs.shape[1]-1):
+                return path_val
+            children = get_adj(i, j, *inputs.shape)
+            for child in children:
+                child = tuple(child)
+                value = inputs[child[0], child[1]]
+                total_path_value = path_val + value
+                if child not in visited and total_path_value < visited_cheapest[child]: 
+                        heapq.heappush(current, (total_path_value, visited | {child}, child))   
+                        visited_cheapest[child] = total_path_value
+    
+            pbar.update(1)     
 
 def part_one():
     inputs = np.array(load_input("inputs/day15.txt"))
@@ -60,14 +81,23 @@ def build_full_size(inputs):
         col = columns[-1] + 1
         col = np.where(col == 10, 1, col)
         columns.append(col)
-    
-
+        
     return np.concatenate(columns, axis=0)
         
-
-if __name__ == "__main__": 
+def part_two():
     inputs = np.array(load_input("inputs/day15.txt"))
     inputs = build_full_size(inputs)
-    path_val, path = min_cost_bfs(inputs)
+    # path_val, path = min_cost_bfs(inputs)
+    path_val = min_cost_bfs_optimized(inputs)
     print(path_val - inputs[0, 0])
+    
+def part_two():
+    inputs = np.array(load_input("inputs/day15.txt"))
+    inputs = build_full_size(inputs)
+    path_val = min_cost_bfs_optimized(inputs)
+    print(path_val - inputs[0, 0])
+
+if __name__ == "__main__": 
+    part_one()
+    part_two()
     
