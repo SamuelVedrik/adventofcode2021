@@ -1,5 +1,5 @@
 import math 
-from itertools import product
+from itertools import combinations
 from tqdm.auto import tqdm
 
 class Tree:
@@ -190,7 +190,7 @@ def part_one():
 def part_two(): 
     inputs = load_inputs("inputs/day18.txt")
     max_ = -1
-    for i1, i2 in tqdm(product(inputs, repeat=2)):
+    for i1, i2 in tqdm(combinations(inputs, r=2)):
         tree1 = Tree(i1) + Tree(i2)
         tree2 = Tree(i2) + Tree(i1)
         reduction(tree1)
@@ -200,5 +200,6 @@ def part_two():
     
     
 if __name__ == "__main__":
+    part_one()
     part_two()
     
