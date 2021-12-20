@@ -16,9 +16,24 @@ def get_index(string):
     binary = string.replace("#", "1").replace(".", "0")
     return int(binary, base=2)
 
-def update_image(image, encoding, min_, max_, PAD=100):
-    output = defaultdict(lambda: ".")
-    for i, j in product(range(min_-PAD, max_+PAD), repeat=2):
+def update_image(image, encoding, min_, max_, pad=1, step=1):
+    
+    # What is happening here?
+    # Somewhere far away in the infinite plane, at t = 0, they all encode to item 0. (...|...|...). 
+    # If encode[0] == ".", then we get (... | ... | ...) again in t=1.
+    # If encode[0] == "#", then we get (### | ### | ###) in t = 1
+    # So oscillations can occur.
+    # Here we are setting the boundary to be what it will be in t=step.
+     
+    if encoding[0] == "#" and encoding[-1] == ".":
+        # Oscillations occur
+        output = defaultdict(lambda: ".") if step % 2 == 0 else defaultdict(lambda: "#")
+    elif encoding[0] == ".":
+        output = defaultdict(lambda: ".")
+    elif encoding[1] == "#" and encoding[-1] == "#":
+        output = defaultdict(lambda: ".") if step == 1 else defaultdict(lambda: "#")
+        
+    for i, j in product(range(min_-pad, max_+pad), repeat=2):
         neighbors = get_neighbors(i, j)
         string = ""
         for neighbor in neighbors:
@@ -51,9 +66,6 @@ if __name__ == "__main__":
             image_dict[i, j] = image_arr[i, j]
     
     for i in tqdm(range(50)):
-        image_dict, min_, max_ = update_image(image_dict, encoding, min_, max_)
-        if i == 1:
-            print(count_lights(image_dict, min_, max_))
-        if i == 49:
-            print(count_lights(image_dict, min_, max_))
+        image_dict, min_, max_ = update_image(image_dict, encoding, min_, max_, step=i+1)
+        if i == 1 or i == 49: print(count_lights(image_dict, min_, max_))
     
