@@ -41,8 +41,7 @@ def get_intersection(box1, box2):
     w = x2_int - x1_int + 1
     l = y2_int - y1_int + 1
     h = z2_int - z1_int + 1
-    intersection = max(w * l * h, 0)
-    if intersection > 0:
+    if all([w > 0, l > 0, h > 0]):
         return (x1_int, x2_int, y1_int, y2_int, z1_int, z2_int)
     return None
 
@@ -53,13 +52,8 @@ def get_volume(box):
 if __name__ == "__main__":
     inputs = load_inputs("inputs/day22.txt")
     components = []
-    NUM_CON = 13
-    
-    #TODO: Bug report: At this stage, I'm adding something that I shouldn't have.
-    # In this case, adding multiple things.
-    
-    # First 20 are within -50, 50
-    for state, x_val, y_val, z_val in inputs[:NUM_CON]:
+
+    for state, x_val, y_val, z_val in inputs:
         box = (*x_val, *y_val, *z_val)
         if state == "on":
             components.append(("add", box))
@@ -87,8 +81,6 @@ if __name__ == "__main__":
     total = 0
     for action, component in components:
         volume = get_volume(component)
-        if volume == 13257:
-            print(action, component)
         assert(volume > 0)
         if action == "add":
             total += volume
@@ -96,4 +88,3 @@ if __name__ == "__main__":
             total -= volume
     
     print(total)
-    part_one()
