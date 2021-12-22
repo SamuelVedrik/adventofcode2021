@@ -1,6 +1,7 @@
 from collections import defaultdict
-from itertools import product, combinations
+from itertools import product
 import re
+from tqdm.auto import tqdm
 
 def load_inputs(path): 
     with open(path) as f: 
@@ -16,12 +17,12 @@ def load_inputs(path):
         parsed.append((state, x_val, y_val, z_val))
     return parsed
 
-def part_one():
+def naive_part_one():
     inputs = load_inputs("inputs/day22.txt")
     # Naive way to store these 
     cube_states = defaultdict(lambda: False)
     # First 20 are within -50, 50
-    for state, x_val, y_val, z_val in inputs[:NUM_CON]:
+    for state, x_val, y_val, z_val in inputs[:20]:
         for x,y,z in product(range(x_val[0], x_val[1]+1), range(y_val[0], y_val[1]+1), range(z_val[0], z_val[1]+1)):
             cube_states[x,y,z] = (state == "on")
     
@@ -49,34 +50,30 @@ def get_volume(box):
     x11, x12, y11, y12, z11, z12 = box
     return (x12 - x11 + 1) * (y12 - y11 + 1) * (z12- z11 + 1)
 
+def update_components(components, box):
+    new = components.copy()
+    for action, box_action in components: 
+        box_intersect = get_intersection(box_action, box)
+        if box_intersect is not None:
+            if action == "add":
+                # We double counted an addition, remove it 
+                new.append(("remove", box_intersect))
+            elif action == "remove":
+                # We double counted a removal, add it back 
+                new.append(("add", box_intersect))  
+    return new
+    
 if __name__ == "__main__":
     inputs = load_inputs("inputs/day22.txt")
     components = []
-
-    for state, x_val, y_val, z_val in inputs:
+    for state, x_val, y_val, z_val in tqdm(inputs):
         box = (*x_val, *y_val, *z_val)
         if state == "on":
-            components.append(("add", box))
             # Considering everything before 
-            for action, box_action in components.copy()[:-1]: 
-                box_intersect = get_intersection(box_action, box)
-                if box_intersect is not None:
-                    if action == "add":
-                        # I double counted a portion, so remove that bit.
-                        components.append(("remove", box_intersect))
-                    elif action == "remove":
-                        # I double removed a portion, so add that bit 
-                        components.append(("add", box_intersect))
-        
+            components = update_components(components, box)
+            components.append(("add", box))
         if state == "off":
-            for action, box_action in components.copy(): 
-                box_intersect = get_intersection(box_action, box)
-                if box_intersect is not None:
-                    if action == "add":
-                        components.append(("remove", box_intersect))
-                    elif action == "remove":
-                        components.append(("add", box_intersect))               
-    
+            components = update_components(components, box)           
 
     total = 0
     for action, component in components:
