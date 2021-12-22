@@ -63,6 +63,21 @@ def update_components(components, box):
                 new.append(("add", box_intersect))  
     return new
     
+def prune_components(comps):
+    new = []
+    for action, box in comps:
+        if action == "add":
+            if ("remove", box) in new:
+                new.remove(("remove", box))
+            else:
+                new.append(("add", box))
+        else: 
+            if ("add", box) in new:
+                new.remove(("add", box))
+            else: 
+                new.append(("remove", box))
+    return new
+                
 if __name__ == "__main__":
     inputs = load_inputs("inputs/day22.txt")
     components = []
@@ -70,10 +85,15 @@ if __name__ == "__main__":
         box = (*x_val, *y_val, *z_val)
         if state == "on":
             # Considering everything before 
-            components = update_components(components, box)
-            components.append(("add", box))
+            new_components = update_components(components, box)
+            new_components.append(("add", box))
         if state == "off":
-            components = update_components(components, box)           
+            new_components = update_components(components, box)    
+        
+        # Pruning is expensive, only do it if it's worth it (1.2 is chosen arbitarily)
+        if len(new_components) > len(components) * 1.2:
+            new_components = prune_components(new_components)
+        components = new_components       
 
     total = 0
     for action, component in components:
