@@ -59,7 +59,7 @@ if __name__ == "__main__":
     # In this case, adding multiple things.
     
     # First 20 are within -50, 50
-    for i, state, x_val, y_val, z_val in inputs[:NUM_CON]:
+    for state, x_val, y_val, z_val in inputs[:NUM_CON]:
         box = (*x_val, *y_val, *z_val)
         if state == "on":
             components.append(("add", box))
